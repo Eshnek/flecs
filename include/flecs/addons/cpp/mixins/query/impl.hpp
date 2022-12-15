@@ -11,13 +11,13 @@ namespace flecs {
 struct query_base {
     query_base()
         : m_world(nullptr)
-        , m_query(nullptr) { }    
-    
+        , m_query(nullptr) { }
+
     query_base(world_t *world, query_t *query = nullptr)
         : m_world(world)
         , m_query(query) { }
 
-    query_base(world_t *world, ecs_query_desc_t *desc) 
+    query_base(world_t *world, ecs_query_desc_t *desc)
         : m_world(world)
     {
         m_query = ecs_query_init(world, desc);
@@ -41,10 +41,10 @@ struct query_base {
      * - new entities have been matched with
      * - matched entities were deleted
      * - matched components were changed
-     * 
+     *
      * @return true if entities changed, otherwise false.
      */
-    bool changed() {
+    bool changed() const {
         return ecs_query_changed(m_query, 0);
     }
 
@@ -55,25 +55,25 @@ struct query_base {
      *
      * @return true if query is orphaned, otherwise false.
      */
-    bool orphaned() {
+    bool orphaned() const {
         return ecs_query_orphaned(m_query);
     }
 
-    /** Get info for group. 
-     * 
+    /** Get info for group.
+     *
      * @param group_id The group id for which to retrieve the info.
      * @return The group info.
      */
-    const flecs::query_group_info_t* group_info(uint64_t group_id) {
+    const flecs::query_group_info_t* group_info(uint64_t group_id) const {
         return ecs_query_get_group_info(m_query, group_id);
     }
 
-    /** Get context for group. 
-     * 
+    /** Get context for group.
+     *
      * @param group_id The group id for which to retrieve the context.
      * @return The group context.
      */
-    void* group_ctx(uint64_t group_id) {
+    void* group_ctx(uint64_t group_id) const {
         const flecs::query_group_info_t *gi = group_info(group_id);
         if (gi) {
             return gi->ctx;
@@ -91,7 +91,7 @@ struct query_base {
     }
 
     template <typename Func>
-    void each_term(const Func& func) {
+    void each_term(const Func& func) const {
         const ecs_filter_t *f = ecs_query_get_filter(m_query);
         ecs_assert(f != NULL, ECS_INVALID_PARAMETER, NULL);
 
@@ -101,31 +101,31 @@ struct query_base {
         }
     }
 
-    filter_base filter() {
+    filter_base filter() const {
         return filter_base(m_world, ecs_query_get_filter(m_query));
     }
 
-    flecs::term term(int32_t index) {
+    flecs::term term(int32_t index) const {
         const ecs_filter_t *f = ecs_query_get_filter(m_query);
         ecs_assert(f != NULL, ECS_INVALID_PARAMETER, NULL);
         return flecs::term(m_world, f->terms[index]);
     }
 
-    int32_t field_count() {
+    int32_t field_count() const {
         const ecs_filter_t *f = ecs_query_get_filter(m_query);
-        return f->term_count;   
+        return f->term_count;
     }
 
-    flecs::string str() {
+    flecs::string str() const {
         const ecs_filter_t *f = ecs_query_get_filter(m_query);
         char *result = ecs_filter_str(m_world, f);
         return flecs::string(result);
     }
 
-    flecs::entity entity() {
-        return flecs::entity(m_world, ecs_query_entity(m_query));
+    flecs::entity entity() const {
+        return flecs::entity(m_world, ecs_get_entity(m_query));
     }
-    
+
     operator query<>() const;
 
 protected:
@@ -139,7 +139,7 @@ public:
     flecs::world world() const {
         return flecs::world(m_world);
     }
-    
+
 private:
     using Terms = typename _::term_ptrs<Components...>::array;
 
